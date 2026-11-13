@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "Tracked configuration and Python credential literals; complements native Gitleaks scanning",
+  "blocked_identifier_sha256": [
+    "08016dc44272c01257af106d72f1f608ded5aeaeb861d86538bfeca2ae86c7f3",
+    "0dbb3e1b560c074a73c84cc3b8fa9d1c6ba1117b13227d86bdca1cef566ad571",
+    "122ebbcf75934e1a1a10b659d1bfd27291d8d0d10690d3b95c6435593f0f8dc5",
+    "4d155a81f0091cb48961d8956a0b4fcb0003c0ecc3edbd9983d9ad86c57f2232",
+    "7373bd2797426f4ff6e11dfc1d26f78275f60d483958b670ccb26cf16a402204",
+    "9209012b91621d11547aabc7e52fc006f38e0b0fa809b843bb2f9e2d557647cd",
+    "b761629d0a7f5cb7cc79bd21e38d54180b959ebfc81ee5b203ad14e30ebf6336",
+    "c25716527ba89c0e6115a219a90c99c5d0b5363a78ba263c2c3f63e432d1befb",
+    "fa2d78d23c374574382be484f962aa914322d373e95198fe1ef936ab90e352ae"
+  ],
+  "reviewed_non_credentials": []
+}
