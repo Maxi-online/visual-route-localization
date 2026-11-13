@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VLOC MVP</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <style>
+      html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      .app { display: grid; grid-template-columns: 440px 1fr; height: 100%; }
+      .left { background: #0e1621; color: #eef2f7; padding: 14px; overflow-y: auto; overflow-x: hidden; }
+      .right { position: relative; }
+      #map { height: 100%; width: 100%; }
+      .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; margin-bottom: 12px; overflow-x: hidden; }
+      .title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+      .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center; }
+      .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .stack8 { display: grid; gap: 8px; }
+      .mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; word-break: break-word; }
+      input, select, button { width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #3a4657; padding: 10px; background: #111c2a; color: #eef2f7; }
+      input[type="file"] { padding: 8px; }
+      button { cursor: pointer; }
+      button.primary { background: #1f6feb; border-color: #1f6feb; }
+      button.warn { background: #b54708; border-color: #b54708; }
+      button.secondary { background: #203047; border-color: #3a4657; }
+      .videoWrap { aspect-ratio: 16/9; background: #000; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
+      .videoWrap img { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+      .status-ok { color: #3fb950; }
+      .status-bad { color: #f85149; }
+      .status-warn { color: #d29922; }
+      .hint { font-size: 12px; opacity: 0.82; line-height: 1.45; overflow-wrap: anywhere; word-break: break-word; }
+      .hidden { display: none !important; }
+      .hud {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(14, 22, 33, 0.88);
+        color: #eef2f7;
+        padding: 12px;
+        border-radius: 10px;
+        z-index: 9999;
+        min-width: 240px;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+      .small { font-size: 12px; opacity: 0.85; overflow-wrap: anywhere; word-break: break-word; }
+      @media (max-width: 1200px) {
+        .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+        .left { max-height: 52vh; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="left">
+        <div class="card">
+          <div class="title">Индексация эталона</div>
+          <div class="stack8">
+            <div class="row">
+              <label for="indexSourceType">Тип источника</label>
+              <span class="small">эталон</span>
+            </div>
+            <select id="indexSourceType">
+              <option value="video">Видео файл</option>
+              <option value="rtsp">RTSP URL</option>
+              <option value="websocket">WebSocket</option>
+              <option value="webrtc">WebRTC</option>
+            </select>
+
+            <div id="indexSelectWrap">
+              <div class="row">
+                <label for="indexSourceSelect">Готовые источники</label>
+                <span class="small">inputs/videos</span>
+              </div>
+              <select id="indexSourceSelect"></select>
+            </div>
+
+            <div id="indexInputWrap">
+              <input id="indexSourceInput" placeholder="rtsp://... или путь/URL к видео" />
+            </div>
+
+            <div id="indexVideoFileWrap">
+              <div class="row">
+                <label for="indexVideoFile">Загрузить видео</label>
+                <span class="small">необязательно</span>
+              </div>
+              <input id="indexVideoFile" type="file" accept="video/*,.mp4,.mov,.mkv,.avi,.webm" />
+            </div>
+
+            <div>
+              <div class="row">
+                <label for="indexPointsPath">Путь к points.txt</label>
+                <span class="small">или загрузка ниже</span>
+              </div>
+              <input id="indexPointsPath" placeholder="укажите путь к ref_01.txt или загрузите файл ниже" />
+            </div>
+
+            <div>
+              <div class="row">
+                <label for="pointsFile">Файл координат</label>
+                <span class="small">необязательно</span>
+              </div>
+              <input id="pointsFile" type="file" accept=".txt,text/plain" />
+            </div>
+
+            <div class="row">
+              <label>Индексация эталона</label>
+              <span class="mono">все кадры</span>
+            </div>
+
+            <div>
+              <div class="row">
+                <label for="indexMaxKeyframes">Max keyframes</label>
+                <span class="small">0 = без лимита</span>
+              </div>
+              <input id="indexMaxKeyframes" type="number" min="0" step="1" value="0" />
+            </div>
+
+            <div id="indexModeNote" class="hint">
+              Для индексации можно указать путь к доступному видео и points.txt на этой машине или просто загрузить оба файла через интерфейс.
+            </div>
+
+            <button class="primary" id="startIndexBtn">Запустить индексацию</button>
+            <div id="indexStatus" class="small">Индексация еще не запускалась.</div>
+            <div id="indexError" class="small status-bad"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="title">Отслеживание движения</div>
+          <div class="stack8">
+            <div class="row">
+              <label for="runtimeSourceType">Тип источника</label>
+              <span class="small">runtime</span>
+            </div>
+            <select id="runtimeSourceType">
+              <option value="video">Видео файл</option>
+              <option value="rtsp">RTSP URL</option>
+              <option value="websocket">WebSocket</option>
+              <option value="webrtc">WebRTC</option>
+            </select>
+
+            <div id="runtimeSelectWrap">
+              <div class="row">
+                <label for="sourceSelect">Готовые runtime-источники</label>
+                <span class="small">файл</span>
+              </div>
+              <select id="sourceSelect"></select>
+            </div>
+
+            <div id="runtimeInputWrap">
+              <input id="sourceInput" placeholder="rtsp://..., ws://... или путь к видео" />
+            </div>
+
+            <div id="runtimeVideoFileWrap">
+              <div class="row">
+                <label for="runtimeVideoFile">Загрузить видео</label>
+                <span class="small">необязательно</span>
+              </div>
+              <input id="runtimeVideoFile" type="file" accept="video/*,.mp4,.mov,.mkv,.avi,.webm" />
+            </div>
+
+            <div id="runtimeSourceNote" class="hint">
+              `WebSocket`: можно указать удаленный `ws://` источник кадров или оставить поле пустым и отправлять кадры прямо в backend ingest URL.<br />
+              `Video`: можно выбрать готовый runtime-источник, указать путь к доступному локальному файлу или загрузить видео ниже.<br />
+              `WebRTC`: в MVP работает как browser camera bridge и отдает кадры в backend через WebSocket.
+            </div>
+
+            <div class="row"><label for="resizeWidth">Min width</label><span id="resizeWidthVal" class="mono">832</span></div>
+            <input type="range" min="480" max="1280" step="32" value="832" id="resizeWidth" />
+            <div class="row"><label for="topK">Top-K</label><span id="topKVal" class="mono">16</span></div>
+            <input type="range" min="1" max="24" value="16" id="topK" />
+
+            <div class="hint">
+              `Min width` задает только минимальную рабочую ширину кадра перед локализацией: маленький кадр можно увеличить, но уменьшение исходного кадра не выполняется.<br />
+              `Top-K` задает число ближайших эталонных keyframe для последующего matching.
+            </div>
+
+            <div class="grid2" style="margin-top: 10px;">
+              <button class="primary" id="startBtn">Запустить</button>
+              <button class="warn" id="stopBtn">Остановить</button>
+            </div>
+            <div id="startStatus" class="small"></div>
+            <div id="bridgeStatus" class="small"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="title">Видео</div>
+          <div class="videoWrap">
+            <img id="videoFeed" alt="runtime video" />
+          </div>
+          <div class="small" style="margin-top:8px;">MJPEG preview текущего runtime-потока</div>
+        </div>
+
+        <div class="card">
+          <div class="title">Статус runtime</div>
+          <div class="row"><div>Runtime</div><div id="rtRunning" class="mono">—</div></div>
+          <div class="row"><div>Source type</div><div id="rtSourceType" class="mono">—</div></div>
+          <div class="row"><div>Decoded</div><div id="rtDecoded" class="mono">0</div></div>
+          <div class="row"><div>Localized</div><div id="rtLocalized" class="mono">0</div></div>
+          <div class="row"><div>Последняя ошибка</div><div id="rtError" class="mono">—</div></div>
+        </div>
+
+        <div class="card">
+          <div class="title">Локализация</div>
+          <div class="row"><div>Lat</div><div id="lat" class="mono">—</div></div>
+          <div class="row"><div>Lng</div><div id="lng" class="mono">—</div></div>
+          <div class="row"><div>Confidence</div><div id="conf" class="mono">—</div></div>
+          <div class="row"><div>Ref keyframe</div><div id="ref" class="mono">—</div></div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div id="map"></div>
+        <div class="hud">
+          <div class="row"><div>Keyframes</div><div id="kfCount" class="mono">0</div></div>
+          <div class="row"><div>Маршрутов</div><div id="routeCount" class="mono">0</div></div>
+          <div class="small">Слева можно отдельно загрузить эталон для индексации и отдельно выбрать runtime-источник для локализации.</div>
+          <div class="small">Проект: <span id="buildVersion">VLOC MVP</span></div>
+          <div class="small">VLOC = Visual Localization, версия MVP.</div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="/app.js?v=vloc-mvp-auto-fps-ui-1"></script>
+  </body>
+</html>

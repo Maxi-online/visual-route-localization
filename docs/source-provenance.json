@@ -1,0 +1,10 @@
+{
+  "sourceComponents": [
+    "."
+  ],
+  "excludedArtifactCategories": [
+    "private environment"
+  ],
+  "previousGitHistoryIncluded": false,
+  "datasetsAndWeightsIncluded": false
+}

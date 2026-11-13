@@ -1,0 +1,28 @@
+services:
+  vloc-fastlock:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vloc-fastlock
+    ports:
+      - "8002:8002"
+    environment:
+      VLOC_DEVICE: ${VLOC_DEVICE:-cuda}
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility,video
+      VLOC_SHARED_HINT: /host-home
+      VLOC_DB_PATH: /app/data/vpr.sqlite
+      VLOC_FAISS_INDEX_PATH: /app/data/faiss.index
+      VLOC_FRAMES_DIR: /app/data/frames
+      VLOC_VIDEOS_DIR: /app/inputs/videos
+      VLOC_POINTS_DIR: /app/inputs/points
+      VLOC_LIVE_DIR: /app/inputs/live
+    volumes:
+      - vloc-data:/app/data
+      - ./inputs:/app/inputs
+      - ${USERPROFILE:-.}:/host-home:ro
+    gpus: all
+    restart: unless-stopped
+
+volumes:
+  vloc-data:

@@ -1,0 +1,17 @@
+{
+  "mode": "synthetic-geodesy-confidence-smoothing",
+  "enu_m": {
+    "east": 6.385052889671806,
+    "north": 11.132000000369544
+  },
+  "round_trip": [
+    55.0001,
+    37.0001
+  ],
+  "confidence": 60.0,
+  "smoothed": [
+    55.000018000000004,
+    37.000018000000004
+  ],
+  "visual_model_executed": false
+}
