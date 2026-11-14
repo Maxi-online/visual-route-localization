@@ -77,7 +77,7 @@ localizer._last_ref_ts_ms = 12_000.0
 localizer._last_source_ts_ms = 6_000.0
 
 localizer._get_keyframe_meta_cached = lambda keyframe_id: {
-    "ts_ms": 80_000.0,  # Слишком далеко от ожидаемого соседа по времени.
+    "ts_ms": 80_000.0,  # It's too far from the expected time neighbor.
     "lat": 48.3900,
     "lng": 37.3300,
     "video_id": 1,

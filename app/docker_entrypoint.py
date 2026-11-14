@@ -27,11 +27,11 @@ def main() -> None:
 
     print("=" * 72, flush=True)
     print("VLOC MVP (Visual Localization) Docker container is ready.", flush=True)
-    print("1. Откройте браузер на этом компьютере.", flush=True)
-    print(f"2. Перейдите по адресу: {frontend_url}", flush=True)
-    print("3. Выберите эталонное видео, points.txt и runtime-видео прямо в интерфейсе.", flush=True)
-    print("4. Можно выбрать файлы прямо в UI или указать путь к доступному локальному файлу.", flush=True)
-    print("5. Для runtime можно сразу использовать видеофайл, RTSP или WebSocket-источник.", flush=True)
+    print('1. Open the browser on this computer.', flush=True)
+    print(f"2. Go to the address: {frontend_url}", flush=True)
+    print('3. Select reference video, points.txt and runtime video directly in the interface.', flush=True)
+    print('4. You can choose the files directly to UI or indicate the path to an accessible local file.', flush=True)
+    print('5. For runtime, you can directly use a video file, RTSP or WebSocket source.', flush=True)
     print("=" * 72, flush=True)
 
     os.execvp(

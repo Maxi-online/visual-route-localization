@@ -9,15 +9,15 @@ from app import db as db_mod
 
 
 def parse_args() -> argparse.Namespace:
-    """Разбирает аргументы командной строки для пересборки retrieval-индекса."""
-    p = argparse.ArgumentParser(description="Сборка retrieval-индекса из SQLite.")
+    'Reviews the command line arguments for the re-assembly of the retrieval index.'
+    p = argparse.ArgumentParser(description='Retrieval index collection from SQLite.')
     p.add_argument("--db", type=str, default="data/vpr.sqlite")
     p.add_argument("--index", type=str, default="data/faiss.index")
     return p.parse_args()
 
 
 def main() -> None:
-    """Выполняет пересборку retrieval-индекса из уже проиндексированных embedding-ов."""
+    'Retrieval index from already indexed embeddings.'
     args = parse_args()
     conn = db_mod.connect(Path(args.db))
     db_mod.migrate(conn)
@@ -30,7 +30,7 @@ def main() -> None:
         out = Path(args.index).with_suffix('.embeddings.npy')
         out.parent.mkdir(parents=True, exist_ok=True)
         np.save(out, {'ids': np.array(ids, dtype=np.int64), 'embs': embs})
-        print(f'FAISS не установлен. Сохранил numpy embeddings: {out}')
+        print(f'FAISS not installed. Saved numpy embeddings: {out}')
         return
     index = faiss.IndexFlatIP(int(dim))
     index.add(embs)

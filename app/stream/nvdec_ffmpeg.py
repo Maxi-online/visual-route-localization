@@ -120,7 +120,7 @@ def start_ffmpeg(
 ) -> tuple[subprocess.Popen[bytes], int, int]:
     info = probe_stream(ffprobe_bin, url)
     if info is None:
-        raise RuntimeError("Не удалось определить размер потока через ffprobe.")
+        raise RuntimeError('Could not determine the flow rate through ffprobe.')
 
     cmd, out_w, out_h = build_ffmpeg_cmd(
         ffmpeg_bin=ffmpeg_bin,

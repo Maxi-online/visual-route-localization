@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     reference_points_name: str = "ref_01.txt"
     runtime_video_name: str = "ref_02.mp4"
 
-    # GPU-only режим
+    # GPU-only mode
     device: str = "cuda"
     sp_max_keypoints: int = 512
 

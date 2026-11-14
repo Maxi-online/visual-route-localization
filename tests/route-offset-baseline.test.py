@@ -44,10 +44,10 @@ def _haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
 ref_01 = _parse_points(ROOT / "inputs" / "points" / "ref_01.txt")
 ref_02 = _parse_points(ROOT / "inputs" / "points" / "ref_02.txt")
 
-assert len(ref_01) >= 10, "Слишком мало контрольных точек в ref_01.txt"
-assert len(ref_02) >= 10, "Слишком мало контрольных точек в ref_02.txt"
+assert len(ref_01) >= 10, 'Too few control points in ref_01.txt'
+assert len(ref_02) >= 10, 'Too few control points in ref_02.txt'
 
-# Для каждой точки маршрута 02 ищем ближайшую точку маршрута 01.
+# For each point on route 02 looking for the nearest point on route 01.
 min_dists = []
 for _, lat2, lng2 in ref_02:
     best = min(_haversine_m(lat2, lng2, lat1, lng1) for _, lat1, lng1 in ref_01)
@@ -58,19 +58,19 @@ median_min_dist = min_dists_sorted[len(min_dists_sorted) // 2]
 mean_min_dist = sum(min_dists) / len(min_dists)
 max_min_dist = max(min_dists)
 
-# Базовая проверка: 02 не должен совпадать с 01, иначе смещение в runtime
-# невозможно валидировать как отдельную траекторию.
+# Base check: 02 shall not coincide with 01, otherwise displacement in runtime
+# It's impossible to validate as a separate trajectory.
 assert median_min_dist >= 80.0, (
-    "Маршрут ref_02 слишком близок к ref_01 (median min dist < 80 м), "
-    "невозможно честно валидировать боковое смещение."
+    'The ref_02 route is too close to ref_01 (median min dist < 80 m)), '
+    "It's impossible to honestly validate the lateral displacement."
 )
 assert mean_min_dist >= 120.0, (
-    "Среднее минимальное расстояние между ref_02 и ref_01 слишком мало; "
-    "ожидается заметно отличающаяся траектория."
+    'The average minimum distance between ref_02 and ref_01 is too small; '
+    'A markedly different trajectory is expected.'
 )
 assert max_min_dist >= 300.0, (
-    "Маршруты отличаются недостаточно по длине/геометрии для проверок "
-    "смещения на дальних участках."
+    'Routes differ not sufficiently in length/geometry for verification '
+    'offsets at remote sites.'
 )
 
 print(

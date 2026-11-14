@@ -78,7 +78,7 @@ def upsert_video(conn: sqlite3.Connection, path: str, fps: float, note: str = ""
     conn.commit()
     row = conn.execute("SELECT id FROM videos WHERE path=?;", (path,)).fetchone()
     if row is None:
-        raise RuntimeError("Не удалось получить video_id после upsert.")
+        raise RuntimeError('Unable to obtain video_id after upsert.')
     return int(row["id"])
 
 
@@ -167,7 +167,7 @@ def upsert_px_to_enu(
 def fetch_embedding_matrix(conn: sqlite3.Connection) -> Tuple[List[int], int, List[bytes]]:
     rows = conn.execute("SELECT keyframe_id, dim, embedding FROM vpr_embeddings ORDER BY keyframe_id ASC;").fetchall()
     if not rows:
-        raise RuntimeError("В БД нет embedding'ов. Запустите индексацию.")
+        raise RuntimeError('There are no embeddings in the database. Start indexing.')
     ids = [int(r["keyframe_id"]) for r in rows]
     dim = int(rows[0]["dim"])
     blobs = [bytes(r["embedding"]) for r in rows]
@@ -180,7 +180,7 @@ def fetch_keyframe_meta(conn: sqlite3.Connection, keyframe_id: int) -> sqlite3.R
         (int(keyframe_id),),
     ).fetchone()
     if row is None:
-        raise KeyError(f"Keyframe {keyframe_id} не найден.")
+        raise KeyError(f"Keyframe {keyframe_id} Not found.")
     return row
 
 
@@ -194,7 +194,7 @@ def fetch_local_features(conn: sqlite3.Connection, keyframe_id: int) -> sqlite3.
         (int(keyframe_id),),
     ).fetchone()
     if row is None:
-        raise KeyError(f"Local features для keyframe {keyframe_id} не найдены.")
+        raise KeyError(f"Local Features for keyframe {keyframe_id} Not found.")
     return row
 
 

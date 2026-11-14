@@ -8,9 +8,9 @@ from pydantic import BaseModel, Field
 class RuntimeStartRequest(BaseModel):
     source_type: Literal["video", "rtsp", "websocket", "webrtc"] = Field(
         "video",
-        description="Тип runtime-источника",
+        description='Runtime source type',
     )
-    stream_url: str = Field("", description="RTSP/UDP URL или путь к файлу")
+    stream_url: str = Field("", description='RTSP/DP URL or file path')
     target_fps: float = Field(0.0, ge=0.0, le=60.0)
     localize_fps: float = Field(0.0, ge=0.0, le=60.0)
     resize_width: int = Field(832, ge=320, le=3840)
