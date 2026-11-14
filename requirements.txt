@@ -6,6 +6,6 @@ pydantic==2.10.3
 pydantic-settings==2.7.1
 python-multipart==0.0.31
 pillow>=10.0.0
-# torch/torchvision ставьте отдельно под вашу платформу:
-#   CUDA build - через официальный index-url PyTorch
-#   CPU build  - если GPU не нужен
+# Torch/torchvision put separately under your platform:
+#   CUDA Building - through the official index-url PyTorch
+#   CPU Building - if GPU is not needed

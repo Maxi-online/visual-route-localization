@@ -107,15 +107,15 @@ function applyIndexSourceTypeUi() {
   setHidden("indexVideoFileWrap", type !== "video");
   setHidden("indexSelectWrap", type !== "video");
   indexSourceInput.placeholder = type === "rtsp"
-    ? "rtsp://... для эталонного маршрута"
-    : "укажите путь к эталонному видео или загрузите файл";
+    ? "rtsp://... for the reference route"
+    : "Enter the path to the reference video or download the file";
   const note = ids("indexModeNote");
   if (type === "video" || type === "rtsp") {
-    note.textContent = "Для индексации можно указать путь к доступным файлам на этой машине или загрузить их через UI.";
+    note.textContent = "For indexing, you can indicate the path to accessible files on this machine or download them through UI.";
   } else if (type === "websocket") {
-    note.textContent = "Индексация из WebSocket пока не включена в MVP. Используйте видеофайл или RTSP.";
+    note.textContent = "Indexation from WebSocket Not yet included in MVP. Use a video file or RTSP.";
   } else {
-    note.textContent = "Прямой WebRTC для индексации пока не включен в MVP. Используйте видеофайл или RTSP.";
+    note.textContent = "Direct WebRTC for indexation not yet included in MVP. Use a video file or RTSP.";
   }
 }
 
@@ -125,24 +125,24 @@ function applyRuntimeSourceTypeUi() {
   setHidden("runtimeVideoFileWrap", type !== "video");
   sourceInput.placeholder =
     type === "rtsp" ? "rtsp://..." :
-    type === "websocket" ? "ws://remote-source (или оставить пустым и слать кадры в ingest URL)" :
-    type === "webrtc" ? "опционально: описание/browser bridge" :
-    "укажите путь к runtime-видео или загрузите файл";
+    type === "websocket" ? "ws://remote-source (Or leave it empty and send it to ingest URL)" :
+    type === "webrtc" ? "optional: description/browser bridge" :
+    "Please indicate the path to runtime-video or download file";
   const note = ids("runtimeSourceNote");
   if (type === "video" || type === "rtsp") {
     note.innerHTML = [
-      "`Video`: можно выбрать готовый runtime-источник, указать путь к локальному файлу или загрузить видео через UI.",
-      "`Path`: используйте путь к доступному файлу на этой машине, если не хотите загружать файл через интерфейс.",
+      "`Video`: You can choose ready. runtime-source, indicate the path to the local file or download the video via UI.",
+      "`Path`: Use the path to an accessible file on this machine if you dont want to download the file through the interface.",
     ].join("<br />");
   } else if (type === "websocket") {
     note.innerHTML = [
-      "`WebSocket`: можно указать удаленный `ws://` источник кадров или оставить поле пустым и отправлять кадры прямо в backend ingest URL.",
-      "`Video upload` в этом режиме не используется.",
+      "`WebSocket`: may indicate remote `ws://` source of personnel or leave the field empty and send the footage directly to backend ingest URL.",
+      "`Video upload` in this mode is not used.",
     ].join("<br />");
   } else {
     note.innerHTML = [
-      "`WebRTC`: в MVP работает как browser camera bridge и отдает кадры в backend через WebSocket.",
-      "`Video upload` в этом режиме не используется.",
+      "`WebRTC`: in MVP It works like browser camera bridge And gives the images to the backend Through WebSocket.",
+      "`Video upload` in this mode is not used.",
     ].join("<br />");
   }
 }
@@ -387,12 +387,12 @@ async function startRemoteWebSocketBridge(remoteUrl, ingestUrl) {
   };
 
   remoteFrameSocket.onclose = () => {
-    updateBridgeStatus("Удаленный WebSocket-источник отключился.", "small status-warn");
+    updateBridgeStatus("Remote WebSocket-The source has passed out.", "small status-warn");
   };
   backendIngestSocket.onclose = () => {
-    updateBridgeStatus("Backend ingest WebSocket закрыт.", "small status-warn");
+    updateBridgeStatus("Backend ingest WebSocket Its closed.", "small status-warn");
   };
-  updateBridgeStatus(`WS bridge активен: ${remoteUrl} -> ${ingestUrl}`, "small status-ok");
+  updateBridgeStatus(`WS bridge active: ${remoteUrl} -> ${ingestUrl}`, "small status-ok");
 }
 
 async function startCameraBridge(ingestUrl) {
@@ -427,9 +427,9 @@ async function startCameraBridge(ingestUrl) {
   cameraBridgeTimer = requestAnimationFrame(pushFrame);
 
   backendIngestSocket.onclose = () => {
-    updateBridgeStatus("Backend ingest WebSocket закрыт.", "small status-warn");
+    updateBridgeStatus("Backend ingest WebSocket Its closed.", "small status-warn");
   };
-  updateBridgeStatus(`WebRTC/camera bridge активен -> ${ingestUrl}`, "small status-ok");
+  updateBridgeStatus(`WebRTC/camera bridge active -> ${ingestUrl}`, "small status-ok");
 }
 
 async function startRuntimeBridge(type, sourceValue, ingestUrl) {
@@ -441,7 +441,7 @@ async function startRuntimeBridge(type, sourceValue, ingestUrl) {
       await startRemoteWebSocketBridge(sourceValue, ingestUrl);
     } else {
       await cleanupRuntimeBridge();
-      updateBridgeStatus(`Backend ingest URL готов: ${ingestUrl}`, "small status-ok");
+      updateBridgeStatus(`Backend ingest URL Ready: ${ingestUrl}`, "small status-ok");
     }
     return;
   }
@@ -461,7 +461,7 @@ async function startIndexBuild() {
     const points = pointsFile.files[0];
     const pointsPath = (indexPointsPath.value || "").trim();
     if (!points && !pointsPath) {
-      throw new Error("Для индексации нужно указать путь к points.txt или загрузить файл.");
+      throw new Error("For indexing, you need to indicate the path to points.txt or upload the file.");
     }
 
     const form = new FormData();
@@ -483,9 +483,9 @@ async function startIndexBuild() {
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.detail || "Не удалось запустить индексацию.");
+      throw new Error(data.detail || "Could not start indexation.");
     }
-    ids("indexStatus").textContent = "Индексация запущена.";
+    ids("indexStatus").textContent = "Indexing is running.";
     await fetchIndexStatus();
   } finally {
     indexInFlight = false;
@@ -503,9 +503,9 @@ async function startRuntime() {
   const uploadedVideo = runtimeVideoFile.files[0] || null;
   try {
     if (sourceType === "video" && uploadedVideo) {
-      startStatus.textContent = `Подготовка runtime: загружаем файл ${uploadedVideo.name}. Это может занять некоторое время для больших видео.`;
+      startStatus.textContent = `Training runtime: upload the file. ${uploadedVideo.name}. It might take some time for a big video.`;
     } else {
-      startStatus.textContent = "Подготовка runtime...";
+      startStatus.textContent = "Training runtime...";
     }
 
     const payload = new FormData();
@@ -522,11 +522,11 @@ async function startRuntime() {
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.detail || "Не удалось запустить runtime.");
+      throw new Error(data.detail || "Unable to start runtime.");
     }
     activeRuntimeSessionId = String(data.runtime_session_id || "");
     const shownSource = uploadedVideo?.name || shortSourceLabel(source) || shortSourceLabel(data.stream_url) || sourceType;
-    startStatus.textContent = `${data.status === "already_running" ? "Уже запущено" : "Запущено"}: ${shownSource}`;
+    startStatus.textContent = `${data.status === "already_running" ? "Already launched." : "Started"}: ${shownSource}`;
     if (sourceType === "websocket" || sourceType === "webrtc") {
       await startRuntimeBridge(sourceType, source, data.ingest_url || "");
     } else {
@@ -542,7 +542,7 @@ async function startRuntime() {
 async function stopRuntime() {
   await cleanupRuntimeBridge();
   await fetch("/api/v1/runtime/stop", { method: "POST" });
-  startStatus.textContent = "Остановлено";
+  startStatus.textContent = "Stopped";
   resetTrackPlayback();
   await fetchStatus();
 }

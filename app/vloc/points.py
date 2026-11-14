@@ -30,19 +30,19 @@ def parse_points_txt(path: Path) -> List[ControlPoint]:
             continue
         m = LINE_RE.match(raw)
         if not m:
-            raise ValueError(f"Не распознал строку #{i}: {raw!r}")
+            raise ValueError(f"I didn't recognize the line.{i}: {raw!r}")
         mm = int(m.group("mm"))
         ss = int(m.group("ss"))
         t = float(mm * 60 + ss)
         if last_time_sec is not None:
             if t < last_time_sec:
-                raise ValueError("Время в points.txt должно идти неубывающе.")
+                raise ValueError('The time at points.txt must go unforgivable.')
             if abs(t - last_time_sec) <= 1e-9:
                 continue
         points.append(ControlPoint(time_sec=t, lat=float(m.group("lat")), lng=float(m.group("lng"))))
         last_time_sec = t
     if len(points) < 2:
-        raise ValueError("Нужно минимум 2 контрольные точки.")
+        raise ValueError('We need at least two control points.')
     return points
 
 

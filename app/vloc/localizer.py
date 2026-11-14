@@ -25,12 +25,12 @@ def _center_xy(w: int, h: int) -> np.ndarray:
 
 
 def _ground_anchor_xy(w: int, h: int) -> np.ndarray:
-    """Опорная точка в нижней части кадра, более чувствительная к рельефу."""
+    'Base point in the lower part of the frame which is more sensitive to topography.'
     return np.array([float(w) * 0.5, float(h) * 0.72], dtype=np.float64)
 
 
 def _ground_anchor_grid(w: int, h: int) -> np.ndarray:
-    """Сетка опорных точек в нижней части кадра для устойчивого смещения."""
+    'Line-point grid at bottom frame for steady displacement.'
     xs = (0.25, 0.5, 0.75)
     ys = (0.72, 0.82, 0.90)
     pts = []
@@ -48,12 +48,12 @@ def _map_point(H: np.ndarray, pt_xy: np.ndarray) -> np.ndarray:
 
 @dataclass
 class Localizer:
-    """Локализует runtime-кадры относительно проиндексированного маршрута.
+    """Localizes the runtime frame relative to the indexed route.
 
-    Класс объединяет retrieval, сопоставление локальных признаков, оценку
-    confidence, временной lock и географическое сглаживание. На выходе
-    возвращаются только координаты, подтвержденные полным пайплайном
-    локализации.
+    The class combines retrieval, local features comparison, evaluation
+    Conference, time lock and geographical smoothing. On the way out
+    Only the coordinates confirmed by the full pypline are returned
+    Localization.
     """
 
     conn: sqlite3.Connection
@@ -97,7 +97,7 @@ class Localizer:
     _miss_streak: int = field(default=0, init=False, repr=False)
 
     def __post_init__(self) -> None:
-        """Инициализирует runtime-кэши метаданных и эталонных признаков."""
+        'Initiating runtime caches of metadata and reference data.'
         self._feature_cache = OrderedDict()
         self._feature_torch_cache = OrderedDict()
         self._meta_cache = {}
@@ -108,7 +108,7 @@ class Localizer:
         self._miss_streak = 0
 
     def reset_lock(self) -> None:
-        """Сохраняет совместимость API и сбрасывает состояние smoother."""
+        'Maintains API compatibility and drops the smoother state.'
         self.smoother.reset()
         self._last_ref_ts_ms = None
         self._last_source_ts_ms = None
@@ -116,7 +116,7 @@ class Localizer:
         self._miss_streak = 0
 
     def _get_keyframe_meta_cached(self, keyframe_id: int) -> dict[str, Any]:
-        """Возвращает метаданные keyframe-а из кэша или SQLite."""
+        'Returns the metadata keyframe-a from the cache or SQLite.'
         keyframe_id = int(keyframe_id)
         cached = self._meta_cache.get(keyframe_id)
         if cached is not None:
@@ -127,7 +127,7 @@ class Localizer:
         return data
 
     def _get_px_to_enu_cached(self, keyframe_id: int) -> Optional[dict[str, Any]]:
-        """Возвращает из кэша пиксельное преобразование в ENU для эталонного keyframe-а."""
+        'Returns pixel conversion from cache to ENU for reference keyframe-a.'
         keyframe_id = int(keyframe_id)
         if keyframe_id in self._px_to_enu_cache:
             return self._px_to_enu_cache[keyframe_id]
@@ -137,7 +137,7 @@ class Localizer:
         return data
 
     def _get_local_features_np(self, keyframe_id: int) -> CachedLocalFeatures:
-        """Загружает локальные признаки эталона в формате NumPy с LRU-кэшированием."""
+        'Uploads local defaults in NumPy format with LRU-cashing.'
         keyframe_id = int(keyframe_id)
         cached = self._feature_cache.get(keyframe_id)
         if cached is not None:
@@ -159,7 +159,7 @@ class Localizer:
         return cached
 
     def _get_local_features_torch(self, keyframe_id: int) -> Any:
-        """Загружает локальные признаки эталона как тензоры на устройстве matcher-а."""
+        'Uploads local signs of the standard as the tags on the matcher-a device.'
         keyframe_id = int(keyframe_id)
         cached = self._feature_torch_cache.get(keyframe_id)
         if cached is not None:
@@ -181,7 +181,7 @@ class Localizer:
         cur_w: int,
         cur_h: int,
     ) -> Optional[Tuple[float, float]]:
-        """Оценивает боковое смещение по сетке нижних опорных точек."""
+        'Assesss lateral displacement along the lower bar grid.'
         try:
             ref = self._get_keyframe_meta_cached(int(ref_keyframe_id))
             ref_lat = float(ref["lat"])
@@ -217,8 +217,8 @@ class Localizer:
             east_m = float(denu_med[0])
             north_m = float(denu_med[1])
 
-            # Проецируем смещение на локальный базис маршрута (тангенс/нормаль),
-            # чтобы подавать в основном поперечную компоненту, а не продольный дрейф.
+            # Project movement to the local base of the route (tangens/normal)),
+            # to serve mainly the transverse component, not the longitudinal drift.
             try:
                 ref_meta = self._get_keyframe_meta_cached(int(ref_keyframe_id))
                 video_id = int(ref_meta["video_id"])
@@ -232,7 +232,7 @@ class Localizer:
                     limit=24,
                 )
                 if len(basis_rows) >= 2:
-                    # Берем самую раннюю и позднюю точки в окне для устойчивого направления.
+                    # Take the earliest and the latest point in the window for a sustainable direction.
                     rows_sorted = sorted(basis_rows, key=lambda r: float(r["ts_ms"]))
                     p0 = rows_sorted[0]
                     p1 = rows_sorted[-1]
@@ -272,17 +272,17 @@ class Localizer:
         ts_ms: float,
         quality_mode: str = "global",
     ) -> dict:
-        """Оценивает retrieval-кандидатов и собирает итоговый результат локализации.
+        """Assesses retrieval candidates and collects the final result of localization.
 
         Args:
-            bgr: Текущий кадр в формате BGR.
-            candidates: Пары ``(keyframe_id, similarity)`` после retrieval.
-            source: Логическое имя источника для выходных метаданных.
-            ts_ms: Временная метка текущего кадра.
+            bgr: Current frame in BGR format.
+            candidates: vapours ``(keyframe_id, similarity)`' after retrieval.
+            source: Logical name of source for output metadata.
+            ts_ms: Temporary mark of the current frame.
 
         Returns:
-            Словарь результата локализации с координатами, confidence и
-            информацией об эталонном keyframe-е.
+            A dictionary of localization results with coordinates, conference and
+            Information on the reference keyframe-e.
         """
         cur_h, cur_w = int(bgr.shape[0]), int(bgr.shape[1])
 
@@ -452,7 +452,7 @@ class Localizer:
         }
 
     def _build_local_candidates(self, q: np.ndarray, ts_ms: float) -> List[Tuple[int, float]]:
-        """Возвращает кандидаты из соседнего временного окна предыдущего попадания."""
+        'Returns candidates from the adjacent temporary window of previous hit.'
         if self._last_ref_ts_ms is None or self._last_source_ts_ms is None or self._last_video_id is None:
             return []
         dt_source_ms = max(0.0, float(ts_ms) - float(self._last_source_ts_ms))
@@ -473,15 +473,15 @@ class Localizer:
         return candidates[: max(int(self.top_k), 12)]
 
     def localize_bgr(self, bgr: np.ndarray, ts_ms: float, source: str) -> dict:
-        """Запускает полный пайплайн локализации для одного BGR-кадра.
+        """Runs a full localization pike for one BGR frame.
 
         Args:
-            bgr: Входной кадр в формате OpenCV BGR.
-            ts_ms: Временная метка, связанная с кадром.
-            source: Человекочитаемое имя источника в выходном результате.
+            bgr: OpenCV BGR input frame.
+            ts_ms: Temporary mark linked to frame.
+            source: A person &apos; s name of the source during the output.
 
         Returns:
-            Финальный сериализуемый словарь результата локализации.
+            The final serealized dictionary of the localization result.
         """
         if self.retriever.ids.size == 0:
             return {

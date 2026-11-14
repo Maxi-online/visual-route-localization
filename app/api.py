@@ -221,7 +221,7 @@ def build_router(
             {
                 "sources": _list_runtime_sources(settings),
                 "supported_types": ["video", "rtsp", "websocket", "webrtc"],
-                "note": "WebRTC в MVP работает через клиентский bridge в WebSocket.",
+                "note": 'WebRTC on MVP works via client Bridge on WebSocket.',
             }
         )
 
@@ -231,7 +231,7 @@ def build_router(
             {
                 "sources": _list_index_sources(settings),
                 "supported_types": ["video", "rtsp", "websocket", "webrtc"],
-                "note": "Для MVP индексирование из UI поддерживает видеофайл или RTSP. WebSocket/WebRTC остаются следующим этапом.",
+                "note": 'For MVP, UI indexing supports a video file or RTSP. WebSocket/WebRTC remains the next stage.',
             }
         )
 
@@ -274,7 +274,7 @@ def build_router(
         data = await frame.read()
         img = cv2.imdecode(np.frombuffer(data, dtype=np.uint8), cv2.IMREAD_COLOR)
         if img is None:
-            raise HTTPException(status_code=400, detail="Не удалось декодировать изображение.")
+            raise HTTPException(status_code=400, detail='Could not decode the image.')
         res = localizer.localize_bgr(img, ts_ms=0.0, source="frame_api")
         bus.publish(res)
         return LocalizationResult(**res)
@@ -292,28 +292,28 @@ def build_router(
         if source_type == "webrtc":
             raise HTTPException(
                 status_code=400,
-                detail="Прямой WebRTC для индексации пока не поддержан. Используйте видеофайл или RTSP.",
+                detail='Direct WebRTC for indexing is not yet supported. Use a video file or RTSP.',
             )
 
         if source_type == "websocket":
             raise HTTPException(
                 status_code=400,
-                detail="Индексация из WebSocket в MVP пока не поддержана. Используйте видеофайл или RTSP.",
+                detail='Indexing from WebSocket to MVP is not yet supported. Use a video file or RTSP.',
             )
 
         if video_file is None and not str(source_value).strip():
-            raise HTTPException(status_code=400, detail="Нужно выбрать видеофайл или указать путь/URL источника.")
+            raise HTTPException(status_code=400, detail='You need to choose a video file or indicate the path/URL of the source.')
         if points_file is None and not str(points_value).strip():
             raise HTTPException(
                 status_code=400,
-                detail="Нужно загрузить points.txt или указать путь к файлу координат.",
+                detail='You need to download points.txt or indicate the path to the coordinate file.',
             )
         if video_file is None and str(source_type).strip().lower() == "video":
             local_video_path = _resolve_local_path(source_value, settings)
             if local_video_path is None or not local_video_path.exists():
                 raise HTTPException(
                     status_code=400,
-                    detail="Не удалось открыть эталонное видео по указанному пути. Используйте путь из папки проекта, путь из домашней директории пользователя или загрузку файла через UI.",
+                    detail='Unable to open reference video on a given path. Use the path from the project folder, the path from the user &apos; s home directory, or download the file via UI.',
                 )
 
         temp_dir = Path(tempfile.mkdtemp(prefix="vloc-index-upload-"))
@@ -325,7 +325,7 @@ def build_router(
             if local_points_path is None or not local_points_path.exists():
                 raise HTTPException(
                     status_code=400,
-                    detail="Не удалось открыть points.txt по указанному пути. Используйте путь из папки проекта, путь из домашней директории пользователя или загрузку файла через UI.",
+                    detail='Unable to open points.txt along the specified path. Use the path from the project folder, the path from the user &apos; s home directory, or download the file via UI.',
                 )
             points_path = local_points_path
 
@@ -377,7 +377,7 @@ def build_router(
         if source_type == "webrtc":
             raise HTTPException(
                 status_code=400,
-                detail="Прямой WebRTC для backend пока не поддержан. Используйте клиентский WebRTC -> WebSocket bridge.",
+                detail='Direct WebRTC for Backend not yet supported. Use the client WebRTC -> WebSocket Bridge.',
             )
 
         stream_url = str(req.stream_url).strip()
@@ -400,7 +400,7 @@ def build_router(
                 if not sources:
                     raise HTTPException(
                         status_code=400,
-                        detail="Не найден ни один runtime-источник. Укажите путь к видео, загрузите файл или выберите доступный источник.",
+                        detail='No Runtime source found. Show the path to the video, download the file or select the available source.',
                     )
                 stream_url = str(sources[0]["value"])
             elif source_type == "video":
@@ -408,7 +408,7 @@ def build_router(
                 if local_video_path is None or not local_video_path.exists():
                     raise HTTPException(
                         status_code=400,
-                        detail="Не удалось открыть runtime-видео по указанному пути. Используйте путь из папки проекта, путь из домашней директории пользователя или загрузку файла через UI.",
+                        detail='Unable to open ringtime video along the specified path. Use the path from the project folder, the path from the user &apos; s home directory, or download the file via UI.',
                     )
                 stream_url = str(local_video_path)
 

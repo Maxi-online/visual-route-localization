@@ -19,11 +19,11 @@ from app.vloc.points import parse_points_txt
 
 
 def rebuild_index(db_path: Path, index_path: Path) -> None:
-    """Пересобирает retrieval-индекс из embedding-ов, сохраненных в SQLite.
+    """Retrieval index from embeddings stored in SQLite.
 
     Args:
-        db_path: Путь к SQLite-базе с VPR embedding-ами.
-        index_path: Целевой путь для FAISS-индекса или numpy fallback-файла.
+        db_path: Path to SQLite Base with VPR embedding-something.
+        index_path: Target route for FAISS index or numpy fallsback file.
     """
     conn = db_mod.connect(db_path)
     db_mod.migrate(conn)
@@ -44,14 +44,14 @@ def rebuild_index(db_path: Path, index_path: Path) -> None:
 
 
 def _normalize_local_path(source_value: str) -> Optional[Path]:
-    """Нормализует локальный путь, полученный от пользователя.
+    """Normalizes the local route received from the user.
 
     Args:
-        source_value: Сырое значение источника из API или UI.
+        source_value: Raw source value from API or UI.
 
     Returns:
-        Разрешенный локальный путь или ``None``, если источник пустой
-        или является удаленным URL.
+        Permitted local route or ``None`' if source is empty
+        or is a remote UrL.
     """
     value = str(source_value).strip()
     if not value or "://" in value:
@@ -64,7 +64,7 @@ def _normalize_local_path(source_value: str) -> Optional[Path]:
 
 
 def _copy_if_needed(src: Path, dst: Path) -> Path:
-    """Копирует файл только если источник и назначение различаются."""
+    'Copys file only if source and purpose differ.'
     src_resolved = src.resolve()
     dst_resolved = dst.resolve()
     if src_resolved == dst_resolved:
@@ -83,16 +83,16 @@ def _sanitize_storage_name(name: str, fallback: str, suffix: str) -> str:
 
 
 def _capture_source_to_video(settings: Settings, source_value: str, out_path: Path, duration_sec: float) -> Path:
-    """Захватывает удаленный источник в локальный файл эталонного видео.
+    """Seizes remote source into local reference video file.
 
     Args:
-        settings: Настройки приложения с путями к FFmpeg и FFprobe.
-        source_value: URL потока или строковый идентификатор источника.
-        out_path: Целевой путь для сохранения эталонного видео.
-        duration_sec: Длительность захвата в секундах.
+        settings: FFmpeg and FFprobe application settings.
+        source_value: Stream or source string identifier.
+        out_path: Target path to save reference video.
+        duration_sec: Length of capture in seconds.
 
     Returns:
-        Путь к захваченному или перекодированному видеофайлу.
+        A way to a captured or recoded video file.
     """
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
@@ -138,13 +138,13 @@ def _capture_source_to_video(settings: Settings, source_value: str, out_path: Pa
     second = subprocess.run(cmd, capture_output=True, text=True)
     if second.returncode != 0 or not out_path.exists():
         err = second.stderr.strip() or first.stderr.strip() or "ffmpeg capture failed"
-        raise RuntimeError(f"Не удалось подготовить источник для индексации: {err}")
+        raise RuntimeError(f"Could not prepare source for indexation: {err}")
     return out_path
 
 
 @dataclass
 class IndexJobRequest:
-    """Параметры одной задачи индексации, запущенной из UI."""
+    'The parameters of one indexing task launched from UI.'
 
     source_type: str
     source_value: str
@@ -156,7 +156,7 @@ class IndexJobRequest:
 
 
 class IndexBuildManager:
-    """Координирует фоновые задачи переиндексации, запущенные через API."""
+    'Coordinates background re-injection tasks launched through API.'
 
     def __init__(
         self,
@@ -165,13 +165,13 @@ class IndexBuildManager:
         stop_runtime: Callable[[], None],
         reload_localizer: Callable[[], None],
     ) -> None:
-        """Инициализирует менеджер фоновой индексации.
+        """It is initiated by the background index manager.
 
         Args:
-            settings: Глобальные настройки приложения.
-            conn: Общее SQLite-соединение.
-            stop_runtime: Callback для остановки текущего runtime-сеанса.
-            reload_localizer: Callback для перезагрузки retrieval-состояния в памяти.
+            settings: Global application settings.
+            conn: General SQLite connection.
+            stop_runtime: Callback to stop the current runtime session.
+            reload_localizer: Callback to reboot retrieval in memory.
         """
         self.settings = settings
         self.conn = conn
@@ -181,7 +181,7 @@ class IndexBuildManager:
         self._thread: Optional[threading.Thread] = None
         self._status: dict[str, object] = {
             "state": "idle",
-            "detail": "Индексация еще не запускалась.",
+            "detail": "The index hasn't started yet.",
             "error": None,
             "started_at": None,
             "finished_at": None,
@@ -191,30 +191,30 @@ class IndexBuildManager:
         }
 
     def status(self) -> dict[str, object]:
-        """Возвращает копию текущего состояния индексации."""
+        'Returns a copy of the current indexation status.'
         with self._lock:
             return dict(self._status)
 
     def _set_status(self, **kwargs: object) -> None:
-        """Атомарно обновляет внутреннее состояние индексации."""
+        'Atomarno updates the internal indexation state.'
         with self._lock:
             self._status.update(kwargs)
 
     def start(self, request: IndexJobRequest) -> dict[str, object]:
-        """Запускает новую фоновую задачу индексации.
+        """Starts a new background indexing task.
 
         Args:
-            request: Полное описание задачи индексации из API-слоя.
+            request: Full description of the indexing task from the API layer.
 
         Returns:
-            Снимок состояния только что инициализированной задачи.
+            Status image just initialized.
         """
         with self._lock:
             if self._thread is not None and self._thread.is_alive():
-                raise RuntimeError("Индексация уже выполняется.")
+                raise RuntimeError('The indexing is already in progress.')
             self._status = {
                 "state": "running",
-                "detail": "Подготовка индексации...",
+                "detail": 'Preparation of indexation...',
                 "error": None,
                 "started_at": time.time(),
                 "finished_at": None,
@@ -227,14 +227,14 @@ class IndexBuildManager:
             return dict(self._status)
 
     def _materialize_reference_video(self, request: IndexJobRequest, work_dir: Path) -> Path:
-        """Подготавливает эталонное видео, используемое для индексации.
+        """Prepares a reference video used for indexing.
 
         Args:
-            request: Пользовательский запрос с типом источника и путями.
-            work_dir: Временная директория для промежуточных файлов.
+            request: User &apos; s request with source type and routes.
+            work_dir: Temporary directory for intermediate files.
 
         Returns:
-            Путь к эталонному видео внутри рабочей директории проекта.
+            Path to reference video inside the project's work directorate.
         """
         if request.uploaded_video_path is not None:
             target_name = _sanitize_storage_name(
@@ -248,7 +248,7 @@ class IndexBuildManager:
 
         source_value = str(request.source_value).strip()
         if not source_value:
-            raise RuntimeError("Не указан источник эталонного видео.")
+            raise RuntimeError('No reference video source specified.')
 
         local_path = _normalize_local_path(source_value)
         if request.source_type in {"video", "path"} and local_path is not None and local_path.exists():
@@ -262,10 +262,10 @@ class IndexBuildManager:
             return target_video
 
         if request.source_type == "websocket":
-            raise RuntimeError("Индексация из WebSocket в MVP пока не поддержана. Используйте файл или RTSP.")
+            raise RuntimeError('Indexing from WebSocket to MVP is not yet supported. Use a file or RTSP.')
 
         if request.source_type == "webrtc":
-            raise RuntimeError("Прямой WebRTC для индексации пока не поддержан. Используйте видеофайл или RTSP.")
+            raise RuntimeError('Direct WebRTC for indexing is not yet supported. Use a video file or RTSP.')
 
         duration_sec = 0.0
         points = parse_points_txt(request.points_path)
@@ -293,28 +293,28 @@ class IndexBuildManager:
         return _copy_if_needed(request.points_path, target_points)
 
     def _run_job(self, request: IndexJobRequest) -> None:
-        """Выполняет полный пайплайн переиндексации в фоновом потоке."""
+        'Runs a full-time re-injection pike in the background stream.'
         work_dir = Path(tempfile.mkdtemp(prefix="vloc-index-"))
         try:
-            self._set_status(detail="Остановка runtime перед переиндексацией...")
+            self._set_status(detail='Stopping ringtime before re-indicating...')
             self._stop_runtime()
 
-            self._set_status(detail="Подготовка эталонного видео...")
+            self._set_status(detail='Preparation of a reference video...')
             reference_video = self._materialize_reference_video(request, work_dir)
             reference_points = self._materialize_reference_points(request, reference_video)
 
-            self._set_status(detail="Обновление данных выбранного эталона...")
+            self._set_status(detail='Update the selected masterpiece data...')
             old_video_id = db_mod.delete_video_by_path(self.conn, str(reference_video))
             if old_video_id is not None:
                 old_frames_dir = self.settings.frames_dir / f"video_{int(old_video_id):03d}"
                 if old_frames_dir.exists():
                     shutil.rmtree(old_frames_dir)
 
-            self._set_status(detail="Индексация эталона...")
+            self._set_status(detail='Standard indexation...')
 
             def on_progress(done: int, total: int, frame_idx: int, ts_ms: float) -> None:
                 self._set_status(
-                    detail=f"Индексация кадров: {done}/{total}, frame={frame_idx}, ts_ms={ts_ms:.0f}",
+                    detail=f"Personnel indexing: {done}/{total}, frame={frame_idx}, ts_ms={ts_ms:.0f}",
                     keyframes=db_mod.count_keyframes(self.conn),
                 )
 
@@ -328,15 +328,15 @@ class IndexBuildManager:
             )
             indexer.index_video(reference_video, reference_points)
 
-            self._set_status(detail="Сборка retrieval-индекса...")
+            self._set_status(detail='Retrieval index assembly...')
             rebuild_index(self.settings.db_path.resolve(), self.settings.faiss_index_path.resolve())
 
-            self._set_status(detail="Обновление localizer в памяти...")
+            self._set_status(detail='Localizer in memory...')
             self._reload_localizer()
 
             self._set_status(
                 state="completed",
-                detail="Индексация завершена.",
+                detail='Indexation complete.',
                 error=None,
                 finished_at=time.time(),
                 keyframes=db_mod.count_keyframes(self.conn),
@@ -345,7 +345,7 @@ class IndexBuildManager:
         except Exception as exc:
             self._set_status(
                 state="failed",
-                detail="Индексация завершилась с ошибкой.",
+                detail='Indexing ended with a mistake.',
                 error=str(exc),
                 finished_at=time.time(),
                 keyframes=db_mod.count_keyframes(self.conn),

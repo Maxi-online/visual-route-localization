@@ -58,14 +58,14 @@
     <div class="app">
       <div class="left">
         <div class="card">
-          <div class="title">Индексация эталона</div>
+          <div class="title">Standard indexation</div>
           <div class="stack8">
             <div class="row">
-              <label for="indexSourceType">Тип источника</label>
-              <span class="small">эталон</span>
+              <label for="indexSourceType">Source type</label>
+              <span class="small">Reference</span>
             </div>
             <select id="indexSourceType">
-              <option value="video">Видео файл</option>
+              <option value="video">Video File</option>
               <option value="rtsp">RTSP URL</option>
               <option value="websocket">WebSocket</option>
               <option value="webrtc">WebRTC</option>
@@ -73,72 +73,72 @@
 
             <div id="indexSelectWrap">
               <div class="row">
-                <label for="indexSourceSelect">Готовые источники</label>
+                <label for="indexSourceSelect">Completed Sources</label>
                 <span class="small">inputs/videos</span>
               </div>
               <select id="indexSourceSelect"></select>
             </div>
 
             <div id="indexInputWrap">
-              <input id="indexSourceInput" placeholder="rtsp://... или путь/URL к видео" />
+              <input id="indexSourceInput" placeholder="rtsp://... or the way/URL To video" />
             </div>
 
             <div id="indexVideoFileWrap">
               <div class="row">
-                <label for="indexVideoFile">Загрузить видео</label>
-                <span class="small">необязательно</span>
+                <label for="indexVideoFile">Upload Video</label>
+                <span class="small">Not necessarily.</span>
               </div>
               <input id="indexVideoFile" type="file" accept="video/*,.mp4,.mov,.mkv,.avi,.webm" />
             </div>
 
             <div>
               <div class="row">
-                <label for="indexPointsPath">Путь к points.txt</label>
-                <span class="small">или загрузка ниже</span>
+                <label for="indexPointsPath">Path to points.txt</label>
+                <span class="small">or download below</span>
               </div>
-              <input id="indexPointsPath" placeholder="укажите путь к ref_01.txt или загрузите файл ниже" />
+              <input id="indexPointsPath" placeholder="Please indicate the path to ref_01.txt or download the file below" />
             </div>
 
             <div>
               <div class="row">
-                <label for="pointsFile">Файл координат</label>
-                <span class="small">необязательно</span>
+                <label for="pointsFile">Coordinate File</label>
+                <span class="small">Not necessarily.</span>
               </div>
               <input id="pointsFile" type="file" accept=".txt,text/plain" />
             </div>
 
             <div class="row">
-              <label>Индексация эталона</label>
-              <span class="mono">все кадры</span>
+              <label>Standard indexation</label>
+              <span class="mono">all personnel</span>
             </div>
 
             <div>
               <div class="row">
                 <label for="indexMaxKeyframes">Max keyframes</label>
-                <span class="small">0 = без лимита</span>
+                <span class="small">0 = No limit</span>
               </div>
               <input id="indexMaxKeyframes" type="number" min="0" step="1" value="0" />
             </div>
 
             <div id="indexModeNote" class="hint">
-              Для индексации можно указать путь к доступному видео и points.txt на этой машине или просто загрузить оба файла через интерфейс.
+              For indexing, you can indicate the path to accessible video and points.txt on this car or just download both files through the interface.
             </div>
 
-            <button class="primary" id="startIndexBtn">Запустить индексацию</button>
-            <div id="indexStatus" class="small">Индексация еще не запускалась.</div>
+            <button class="primary" id="startIndexBtn">Start indexing</button>
+            <div id="indexStatus" class="small">The index hasnt started yet.</div>
             <div id="indexError" class="small status-bad"></div>
           </div>
         </div>
 
         <div class="card">
-          <div class="title">Отслеживание движения</div>
+          <div class="title">Traffic tracking</div>
           <div class="stack8">
             <div class="row">
-              <label for="runtimeSourceType">Тип источника</label>
+              <label for="runtimeSourceType">Source type</label>
               <span class="small">runtime</span>
             </div>
             <select id="runtimeSourceType">
-              <option value="video">Видео файл</option>
+              <option value="video">Video File</option>
               <option value="rtsp">RTSP URL</option>
               <option value="websocket">WebSocket</option>
               <option value="webrtc">WebRTC</option>
@@ -146,28 +146,28 @@
 
             <div id="runtimeSelectWrap">
               <div class="row">
-                <label for="sourceSelect">Готовые runtime-источники</label>
-                <span class="small">файл</span>
+                <label for="sourceSelect">Ready runtime-Sources</label>
+                <span class="small">File</span>
               </div>
               <select id="sourceSelect"></select>
             </div>
 
             <div id="runtimeInputWrap">
-              <input id="sourceInput" placeholder="rtsp://..., ws://... или путь к видео" />
+              <input id="sourceInput" placeholder="rtsp://..., ws://... Or the way to the video." />
             </div>
 
             <div id="runtimeVideoFileWrap">
               <div class="row">
-                <label for="runtimeVideoFile">Загрузить видео</label>
-                <span class="small">необязательно</span>
+                <label for="runtimeVideoFile">Upload Video</label>
+                <span class="small">Not necessarily.</span>
               </div>
               <input id="runtimeVideoFile" type="file" accept="video/*,.mp4,.mov,.mkv,.avi,.webm" />
             </div>
 
             <div id="runtimeSourceNote" class="hint">
-              `WebSocket`: можно указать удаленный `ws://` источник кадров или оставить поле пустым и отправлять кадры прямо в backend ingest URL.<br />
-              `Video`: можно выбрать готовый runtime-источник, указать путь к доступному локальному файлу или загрузить видео ниже.<br />
-              `WebRTC`: в MVP работает как browser camera bridge и отдает кадры в backend через WebSocket.
+              `WebSocket`: may indicate remote `ws://` source of personnel or leave the field empty and send the footage directly to backend ingest URL.<br />
+              `Video`: You can choose ready. runtime-Source, indicate the path to an accessible local file or download the video below.<br />
+              `WebRTC`: in MVP It works like browser camera bridge And gives the images to the backend Through WebSocket.
             </div>
 
             <div class="row"><label for="resizeWidth">Min width</label><span id="resizeWidthVal" class="mono">832</span></div>
@@ -176,13 +176,13 @@
             <input type="range" min="1" max="24" value="16" id="topK" />
 
             <div class="hint">
-              `Min width` задает только минимальную рабочую ширину кадра перед локализацией: маленький кадр можно увеличить, но уменьшение исходного кадра не выполняется.<br />
-              `Top-K` задает число ближайших эталонных keyframe для последующего matching.
+              `Min width` Set only the minimum work width of the image before localization: the small image can be increased, but the reduction of the source image is not performed.<br />
+              `Top-K` Sets the number of nearest reference points keyframe for follow-up matching.
             </div>
 
             <div class="grid2" style="margin-top: 10px;">
-              <button class="primary" id="startBtn">Запустить</button>
-              <button class="warn" id="stopBtn">Остановить</button>
+              <button class="primary" id="startBtn">Start</button>
+              <button class="warn" id="stopBtn">Stop</button>
             </div>
             <div id="startStatus" class="small"></div>
             <div id="bridgeStatus" class="small"></div>
@@ -190,24 +190,24 @@
         </div>
 
         <div class="card">
-          <div class="title">Видео</div>
+          <div class="title">Video</div>
           <div class="videoWrap">
             <img id="videoFeed" alt="runtime video" />
           </div>
-          <div class="small" style="margin-top:8px;">MJPEG preview текущего runtime-потока</div>
+          <div class="small" style="margin-top:8px;">MJPEG preview Current runtime-flow rate</div>
         </div>
 
         <div class="card">
-          <div class="title">Статус runtime</div>
+          <div class="title">Status runtime</div>
           <div class="row"><div>Runtime</div><div id="rtRunning" class="mono">—</div></div>
           <div class="row"><div>Source type</div><div id="rtSourceType" class="mono">—</div></div>
           <div class="row"><div>Decoded</div><div id="rtDecoded" class="mono">0</div></div>
           <div class="row"><div>Localized</div><div id="rtLocalized" class="mono">0</div></div>
-          <div class="row"><div>Последняя ошибка</div><div id="rtError" class="mono">—</div></div>
+          <div class="row"><div>The Last Error</div><div id="rtError" class="mono">—</div></div>
         </div>
 
         <div class="card">
-          <div class="title">Локализация</div>
+          <div class="title">Localization</div>
           <div class="row"><div>Lat</div><div id="lat" class="mono">—</div></div>
           <div class="row"><div>Lng</div><div id="lng" class="mono">—</div></div>
           <div class="row"><div>Confidence</div><div id="conf" class="mono">—</div></div>
@@ -219,10 +219,10 @@
         <div id="map"></div>
         <div class="hud">
           <div class="row"><div>Keyframes</div><div id="kfCount" class="mono">0</div></div>
-          <div class="row"><div>Маршрутов</div><div id="routeCount" class="mono">0</div></div>
-          <div class="small">Слева можно отдельно загрузить эталон для индексации и отдельно выбрать runtime-источник для локализации.</div>
-          <div class="small">Проект: <span id="buildVersion">VLOC MVP</span></div>
-          <div class="small">VLOC = Visual Localization, версия MVP.</div>
+          <div class="row"><div>Routes</div><div id="routeCount" class="mono">0</div></div>
+          <div class="small">To the left, you can download the indexing standard separately and select one runtime-A source for localization.</div>
+          <div class="small">Project: <span id="buildVersion">VLOC MVP</span></div>
+          <div class="small">VLOC = Visual Localization, version MVP.</div>
         </div>
       </div>
     </div>

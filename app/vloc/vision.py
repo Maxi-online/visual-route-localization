@@ -31,7 +31,7 @@ class GlobalEmbedder:
 
 def bgr_to_torch_gray(bgr: np.ndarray, device: str) -> torch.Tensor:
     if bgr.ndim != 3 or bgr.shape[2] != 3:
-        raise ValueError("Ожидаю BGR изображение HxWx3.")
+        raise ValueError('Waiting for the BGR image of HxWx3.')
     gray = (
         0.114 * bgr[..., 0] + 0.587 * bgr[..., 1] + 0.299 * bgr[..., 2]
     ).astype(np.float32)

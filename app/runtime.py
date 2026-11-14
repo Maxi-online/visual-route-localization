@@ -18,16 +18,16 @@ from app.vloc.localizer import Localizer
 
 @dataclass
 class RuntimeConfig:
-    """Конфигурация runtime-локализации.
+    """Runtime-localization configuration.
 
     Attributes:
-        source_type: Тип источника, например ``video`` или ``websocket``.
-        stream_url: Абсолютный путь к файлу или URL видеопотока.
-        target_fps: Желаемая частота декодирования входного потока.
-        localize_fps: Целевая частота локализации, приходящая из UI.
-        resize_width: Ширина кадра после ресайза перед локализацией.
-        top_k: Количество лучших retrieval-кандидатов для локализации.
-        source_token: Токен WebSocket ingest-режима для browser bridge.
+        source_type: Source type, e.g.``video`` or``websocket``.
+        stream_url: Absolute path to file or URL video stream.
+        target_fps: Desirable inlet decoded frequency.
+        localize_fps: Target localization frequency from UI.
+        resize_width: Width of frame after resuscitation.
+        top_k: Number of best retrieval candidates for localization.
+        source_token: WebSocket intest mode for Browser Bridge.
     """
 
     source_type: str
@@ -40,15 +40,15 @@ class RuntimeConfig:
 
 
 class RuntimeLocalizer:
-    """Управляет декодированием, буферизацией и runtime-локализацией."""
+    'Manage decoded, buffered and runtime-localized.'
 
     def __init__(self, settings: Settings, conn: sqlite3.Connection, localizer: Localizer) -> None:
-        """Инициализирует координатор runtime-локализации.
+        """The focal point for runtime-localization is initiated.
 
         Args:
-            settings: Глобальные настройки приложения и пути к файлам.
-            conn: SQLite-соединение, используемое runtime-подсистемой.
-            localizer: Подготовленный локализатор для обработки кадров.
+            settings: Global application settings and file paths.
+            conn: SQLite connection used by the runtime subsystem.
+            localizer: Trained localizer for human resources processing.
         """
         self.settings = settings
         self.conn = conn
@@ -86,7 +86,7 @@ class RuntimeLocalizer:
             self.on_result(res)
 
     def _same_config(self, cfg: RuntimeConfig) -> bool:
-        """Проверяет совпадение нового запроса запуска с текущей конфигурацией."""
+        'Checks the match of a new start request with the current configuration.'
         cur = self._cfg
         if cur is None:
             return False
@@ -112,14 +112,14 @@ class RuntimeLocalizer:
         )
 
     def start(self, cfg: RuntimeConfig) -> bool:
-        """Запускает runtime-потоки с переданной конфигурацией.
+        """Starts runtime currents with a shift configuration.
 
         Args:
-            cfg: Параметры runtime, полученные от API или UI.
+            cfg: Runtime parameters from API or UI.
 
         Returns:
-            ``True``, если был запущен новый runtime-сеанс, иначе ``False``,
-            если тот же набор параметров уже активен.
+            ``True``, if a new one has been launchedruntime-session, otherwise.``False``,
+            If the same set of parameters is already active.
         """
         with self._lifecycle_lock:
             if self._running and self._same_config(cfg):
@@ -150,12 +150,12 @@ class RuntimeLocalizer:
             return True
 
     def stop(self) -> None:
-        """Останавливает поток декодера и поток локализации."""
+        'Stops the decoder stream and the localization stream.'
         with self._lifecycle_lock:
             self._stop_locked()
 
     def _stop_locked(self) -> None:
-        """Останавливает внутренние потоки и внешние процессы под lifecycle-lock."""
+        'Stops internal flows and external processes under lifecloth-lock.'
         self._stop.set()
         self._running = False
         self._active_source_token = ""
@@ -174,7 +174,7 @@ class RuntimeLocalizer:
             self._worker_thread = None
 
     def status(self) -> dict[str, Any]:
-        """Возвращает текущее состояние runtime для API-ответа."""
+        'Returns the current runtime state for the API response.'
         cfg = self._cfg
         return {
             "running": bool(self._running),
@@ -194,13 +194,13 @@ class RuntimeLocalizer:
         }
 
     def _set_error(self, message: str) -> None:
-        """Сохраняет фатальную ошибку runtime и переводит его в остановленное состояние."""
+        'Maintains the fatal runtime error and translates it into a stoped state.'
         self._last_error = message
         self._running = False
         self._active_source_token = ""
 
     def accepts_websocket_token(self, token: str) -> bool:
-        """Проверяет токен ingest-режима для websocket runtime."""
+        'Checks the intest mode current for the websocket runtime.'
         cfg = self._cfg
         return bool(
             self._running
@@ -210,21 +210,21 @@ class RuntimeLocalizer:
         )
 
     def push_frame_bytes(self, payload: bytes, source_ts_ms: Optional[float] = None) -> bool:
-        """Декодирует и помещает входной websocket-кадр в буфер.
+        """Decodes and puts a webcket entry frame into the buffer.
 
         Args:
-            payload: Закодированные байты изображения, полученные от ingest bridge.
-            source_ts_ms: Необязательная временная метка источника в миллисекундах.
+            payload: Coded bytes of images obtained from an intest bridge.
+            source_ts_ms: Non-mandatory temporary source mark in milliseconds.
 
         Returns:
-            ``True``, если кадр был принят в latest-frame buffer, иначе ``False``.
+            ``True``, if the frame was accepted inlatest-frame buffer, other``False``.
         """
         cfg = self._cfg
         if not self._running or cfg is None or str(cfg.source_type) != "websocket":
             return False
         img = cv2.imdecode(np.frombuffer(payload, dtype=np.uint8), cv2.IMREAD_COLOR)
         if img is None:
-            self._last_error = "Не удалось декодировать websocket-кадр."
+            self._last_error = 'Could not decode the websocket frame.'
             return False
         self._decoded_frames += 1
         if source_ts_ms is None:
@@ -240,7 +240,7 @@ class RuntimeLocalizer:
         return True
 
     def _decoder_loop(self) -> None:
-        """Читает кадры из FFmpeg и публикует их в буфер последнего кадра."""
+        'Reads FFmpeg footage and publishes it in the back of the last frame.'
         assert self._cfg is not None
         cfg = self._cfg
 
@@ -264,25 +264,25 @@ class RuntimeLocalizer:
                 if info is not None and float(info.fps) > 0.0:
                     self._source_fps = float(info.fps)
         except Exception as exc:
-            self._set_error(f"GPU-only режим: FFmpeg/NVDEC не запустился: {exc}")
+            self._set_error(f"GPU-only mode: FFmpeg/NVDEC did not start: {exc}")
             return
 
         frame_bytes = self._out_w * self._out_h * 3
         proc = self._ffmpeg_proc
         if proc is None:
-            self._set_error("FFmpeg процесс не инициализирован.")
+            self._set_error('FFmpeg process not initialized.')
             return
 
         stdout = proc.stdout
         if stdout is None:
-            self._set_error("FFmpeg stdout недоступен.")
+            self._set_error('FFmpeg stdout is not available.')
             return
 
         while not self._stop.is_set():
             raw = stdout.read(frame_bytes)
             if raw is None or len(raw) != frame_bytes:
                 if proc.poll() is not None:
-                    self._set_error("FFmpeg завершился или поток закончился.")
+                    self._set_error('The FFmpeg has ended or the flow has ended.')
                     return
                 time.sleep(0.005)
                 continue
@@ -299,10 +299,10 @@ class RuntimeLocalizer:
             self.buffer.put(frame, source_ts_ms=source_ts_ms)
 
     def _worker_loop(self) -> None:
-        """Выполняет локализацию для каждого нового кадра из буфера.
+        """Conducts localization for each new frame from the buffer.
 
-        Поток обрабатывает только свежие кадры и не публикует синтетические
-        координаты между подтвержденными локализациями.
+        Flow only handles fresh human resources and does not publish synthetics
+        coordinates between confirmed localizations.
         """
         cfg = self._cfg
         if cfg is None:
@@ -327,5 +327,5 @@ class RuntimeLocalizer:
                 )
                 self._publish_result(res)
             except Exception as exc:
-                self._set_error(f"Ошибка локализации: {exc}")
+                self._set_error(f"Error of localization: {exc}")
                 return

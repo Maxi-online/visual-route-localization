@@ -30,14 +30,14 @@ class IndexedKeyframe:
 def _video_info(video_path: Path) -> Tuple[float, int, int, int]:
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
-        raise RuntimeError(f"Не удалось открыть видео: {video_path}")
+        raise RuntimeError(f"Unable to open the video: {video_path}")
     fps = float(cap.get(cv2.CAP_PROP_FPS))
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap.release()
     if fps <= 0.0 or frame_count <= 0:
-        raise RuntimeError("Не удалось прочитать fps/frame_count.")
+        raise RuntimeError('Could not read fps/frame_count.')
     return fps, frame_count, w, h
 
 
@@ -67,7 +67,7 @@ def _fit_a_from_pairs(dpx_list: List[np.ndarray], denu_list: List[np.ndarray]) -
         a_t, *_ = np.linalg.lstsq(dpx, denu, rcond=None)
         A = a_t.T.astype(np.float64)
 
-        # Робастное доуточнение: выкидываем грубые выбросы по остаткам.
+        # Refinement: Dumping of gross emissions from residues.
         pred = (A @ dpx.T).T
         err = np.linalg.norm(pred - denu, axis=1)
         if err.size >= 6:
@@ -78,15 +78,15 @@ def _fit_a_from_pairs(dpx_list: List[np.ndarray], denu_list: List[np.ndarray]) -
                 a_t_refined, *_ = np.linalg.lstsq(dpx[inlier_mask], denu[inlier_mask], rcond=None)
                 A = a_t_refined.T.astype(np.float64)
 
-        # Стабилизируем анизотропию, чтобы не схлопывать боковую компоненту.
+        # Stabilize anithropy to avoid smashing the side component.
         u, s, vt = np.linalg.svd(A)
         s0 = float(max(s[0], 1e-6))
         s1 = float(max(s[1], 1e-6))
         max_anisotropy = 4.0
         if s0 / s1 > max_anisotropy:
             s1 = s0 / max_anisotropy
-        # Физически правдоподобный диапазон масштаба: не допускаем
-        # экстремальные m/px, которые делают коррекцию нестабильной.
+        # Physically plausible range of scale: Not allowed
+        # Extreme m/px which makes correction unstable.
         min_scale = 0.03
         max_scale = 20.0
         s0 = min(max(s0, min_scale), max_scale)
@@ -141,7 +141,7 @@ class Indexer:
         lat, lng = interpolate_track(times_sec, points)
         cap = cv2.VideoCapture(str(video_path))
         if not cap.isOpened():
-            raise RuntimeError(f"Не удалось открыть видео: {video_path}")
+            raise RuntimeError(f"Unable to open the video: {video_path}")
         video_out_dir = self.frames_dir / f"video_{video_id:03d}"
         video_out_dir.mkdir(parents=True, exist_ok=True)
         inserted: List[IndexedKeyframe] = []
@@ -150,11 +150,11 @@ class Indexer:
             cap.set(cv2.CAP_PROP_POS_FRAMES, int(frame_idx))
             ok, frame = cap.read()
             if not ok:
-                raise RuntimeError(f"Не удалось прочитать кадр {frame_idx}")
+                raise RuntimeError(f"Unable to read frame {frame_idx}")
             ts_ms = float(times_sec[i] * 1000.0)
             img_path = video_out_dir / f"frame_{int(frame_idx):09d}.jpg"
             if not cv2.imwrite(str(img_path), frame):
-                raise RuntimeError(f"Не удалось сохранить {img_path}")
+                raise RuntimeError(f"Unable to save {img_path}")
             keyframe_id = db_mod.insert_keyframe(
                 self.conn,
                 video_id=video_id,

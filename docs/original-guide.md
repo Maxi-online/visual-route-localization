@@ -1,10 +1,10 @@
 # Visual Localization MVP
 
-## Инженерный обзор
+## Engineering review
 
-Компьютерное зрение для локализации кадра на заранее индексированном маршруте. Индексация эталона и runtime локализация разделены; retrieval сужает поиск, matching и геометрия проверяют совпадение, confidence и временная обработка позволяют отклонять сомнительные результаты.
+Computer vision for frame localization on a pre-indexed route. Indication of the reference and runtime localization are divided; retrieval restricts search, matching and geometry verify coincidence, confidence and temporary processing allow to reject doubtful results.
 
-### Навигация по коду
+### Code navigation
 
 - [app/indexing_service.py](app/indexing_service.py)
 - [app/runtime.py](app/runtime.py)
@@ -12,206 +12,206 @@
 - [app/vloc/matching.py](app/vloc/matching.py)
 - [app/vloc/confidence.py](app/vloc/confidence.py)
 
-### Воспроизведение и оценка
+### Reproduction and evaluation
 
-Для честной проверки разделяйте query и reference записи. Измеряйте географическую ошибку p50/p95 по независимому ground truth, частоту ложной локализации, долю отказов и задержку. Расстояние между маршрутами не заменяет ошибку предсказанной позиции. В проекте не обнаружены встроенные ключи провайдеров при текущей проверке исходников.
+For honest verification, divide the query and reference records. Measure the p50/p95 geographical error by independent ground truth, false localization frequency, rejection and delay. The distance between routes does not replace the error of the predicted position. The project did not identify the service providers &apos; built-in keys during the ongoing baseline verification.
 
 
-## Общее описание
+## General description
 
-`VLOC MVP` — система визуальной локализации летательного аппарата.
+`VLOC MVP' is a visual localization system for aircraft.
 
-Проект реализован как MVP-версия системы, которая определяет положение летательного аппарата
-относительно заранее подготовленного эталонного маршрута.
+The project was implemented as a MVP version of the system that defines the position of the aircraft
+concerning the pre-prepared reference route.
 
-Система принимает видеопоток или видеофайл, сопоставляет текущие кадры с
-эталонной базой ключевых кадров, вычисляет географические координаты и
-передает результат в web-интерфейс, где одновременно отображаются:
+The system receives a video stream or a video file, compares current images with
+Core personnel reference base, computes geographical coordinates and
+transmits the result to the web interface where it is displayed simultaneously:
 
-- карта с текущим положением;
-- видеопоток runtime;
-- статус локализации;
-- служебная телеметрия.
+- A map with current status;
+- Video stream of runtime;
+- Localization status;
+- Service telemetry.
 
-Проект состоит из backend-части на Python/FastAPI и frontend-части на
-HTML/CSS/JavaScript с картографическим интерфейсом на Leaflet.
+The project consists of a backend part on Python/FastAPI and a Frontend part on
+TML/CSS/JavaScript with map interface on Leaflet.
 
-## Технологии
+## Technology
 
 ### Backend
 
 - `Python 3.11+`
-- `FastAPI` — HTTP API, SSE и WebSocket endpoints
-- `Uvicorn` — ASGI-сервер
-- `SQLite` — локальное хранение keyframe-ов, embeddings и признаков
-- `NumPy` — работа с embedding-ами и векторными данными
-- `OpenCV` — декодирование изображений, работа с кадрами и геометрией
-- `PyTorch + CUDA` — вычисления на GPU
-- `LightGlue` — сопоставление локальных признаков
-- `FFmpeg / FFprobe` — декодирование видео и подготовка потоков
+- `FastAPI` – HTTP API, SSE and WebSocket endpoints
+- `Uvicorn` – ASGI server
+- `SQLite' is a local storage of keyframes, embeddings and features
+- `NumPy` — Working with embedding and vector data
+- `OpenCV' is the decoded image, human resources and geometry
+- `PyTorch + CUDA` — GPU Calculations
+- `LightGlue` — Comparison of Local Signs
+- `FFmpeg / FFprobe' is a video decoded and stream generated
 
 ### Frontend
 
 - `HTML5`
 - `CSS3`
 - `Vanilla JavaScript`
-- `Leaflet` — интерактивная карта
-- `MJPEG preview` — отображение текущего видеопотока в браузере
-- `SSE` — получение результатов локализации в реальном времени
+- `Leaflet` interactive map
+- `MJPEG preview' is a display of the current video stream in the browser
+- `SSE' is the real-time localization results
 
-## Архитектура решения
+## Decision architecture
 
-Система разделена на два основных контура:
+The system is divided into two main contours:
 
-### 1. Контур индексации эталона
+### 1. Standard indexing connections
 
-Используется для подготовки эталонного маршрута, по которому затем выполняется
-runtime-локализация.
+Used for the preparation of the reference route, which is then carried out
+Runtime-localization.
 
-Этапы:
+Steps:
 
-1. Загружается эталонное видео.
-2. Загружается файл координат `points.txt`.
-3. Из видео извлекаются keyframe-ы с заданной частотой.
-4. Для каждого keyframe-а вычисляются:
-   - глобальный embedding;
-   - локальные признаки;
-   - географическая привязка.
-5. Результаты сохраняются в локальную базу SQLite.
-6. На основе embedding-ов собирается retrieval-индекс.
+1. The reference video is being downloaded.
+2. The `points.txt` coordinates file shall be downloaded.
+3. The keyframe with the specified frequency.
+4. For each keyframe-a, the following are listed:
+   - Global embedding;
+   - Local features;
+   - Geographical reference.
+5. The results are stored in the local SQLite database.
+6. Retrieval index is collected from embedding.
 
-### 2. Контур runtime-локализации
+### 2. Runtime-localization conturbation
 
-Используется для вычисления текущего положения по входному видеопотоку.
+Used to compute current position via video input.
 
-Этапы:
+Steps:
 
-1. Runtime-поток поступает из:
-   - видеофайла;
+1. Runtime flow comes from:
+   - Video files;
    - RTSP;
    - WebSocket bridge.
-2. FFmpeg декодирует поток в последовательность кадров.
-3. Backend выбирает свежий кадр для локализации.
-4. Для кадра вычисляется embedding.
-5. Выполняется retrieval ближайших эталонных keyframe-ов.
-6. Выполняется локальное сопоставление признаков.
-7. Вычисляется confidence локализации.
-8. Применяются:
+2. FFmpeg decodes the flow into the sequence of the frame.
+3. Backend selects a fresh frame for localization.
+4. Embedding is calculated for the frame.
+5. Retrieval of the nearest reference keyframes is being implemented.
+6. A local comparison of the topics is being carried out.
+7. Compute confidence localization.
+8. Applicable:
    - temporal lock;
    - speed gate;
    - smoothing.
-9. Итоговые координаты публикуются в SSE-поток.
-10. Frontend получает координаты и отображает положение на карте.
+9. The final coordinates are published in the SSE stream.
+10. Frontend receives the coordinates and displays the position on the map.
 
-## Схема работы
+## Scheme of work
 
-### Сценарий индексации
+### Indexing scenario
 
-`Эталонное видео -> извлечение keyframe -> embedding + local features -> SQLite -> retrieval index`
+`Keyframe -> embedding + local features -> SQLite -> retrieval index`
 
-### Сценарий runtime
+### Runtime script
 
-`Входной поток -> FFmpeg -> кадр -> retrieval -> matching -> confidence -> координаты -> SSE -> карта`
+`Incoming flow -> FFmpeg -> frame -> retrieval -> matching -> conference -> coordinates -> SSE -> map`
 
-## Структура проекта
+## Project structure
 
-- `app/` — backend-логика проекта
-- `web/` — frontend интерфейс
-- `inputs/videos/` — эталонные и runtime-видео
-- `inputs/points/` — файлы координат эталонных маршрутов
-- `data/` — база данных, индекс и подготовленные keyframe-кадры
-- `INSTALL_GPU_ONLY_WINDOWS.txt` — отдельная инструкция по GPU-установке
-- `requirements.txt` — Python-зависимости проекта
+- `app/` – Backend logic of the project
+- `web/` - Frentend interface
+- `inputs/videos/` - Reference and ringtime video
+- `inputs/points/` - Reference route coordinates files
+- `Data/' is a database, index and prepared keyframe frame
+- `INSTALL_GPU_ONLY_WINDOWS.txt' is a separate instruction for GPU installation
+- `requirements.txt` – Python Dependence of the Project
 
-## Основные backend-модули
+## Main backend moduli
 
 ### `app/main.py`
 
-Точка входа приложения. Создает FastAPI-приложение, подключает роуты, инициализирует
-runtime, localizer и retrieval-state.
+Entry point of the application. Creates FastAPI application, connects Rows, initialises
+Runtime, localizer and retrieval-state.
 
 ### `app/api.py`
 
-HTTP API проекта. Содержит:
+HTTP API Project. Contains:
 
 - health/version endpoints;
 - runtime endpoints;
-- endpoints индексации;
-- SSE-поток локализации;
+- Endpoints indexation;
+- SSE-flow of localization;
 - WebSocket ingest endpoint.
 
 ### `app/runtime.py`
 
-Контур runtime-локализации:
+Runtime-localization:
 
-- запуск FFmpeg;
-- буферизация кадров;
-- вызов локализации;
-- публикация результата.
+- FFmpeg;
+- Staff buffers;
+- Localization challenge;
+- Publication of the result.
 
 ### `app/indexing_service.py`
 
-Фоновая индексация эталонного маршрута:
+Background indexation of the reference route:
 
-- прием параметров задачи;
-- подготовка эталонного видео;
-- очистка старого индекса;
-- запуск indexer;
-- пересборка retrieval-индекса.
+- Accepting the task parameters;
+- Preparation of a reference video;
+- Cleaning of the old index;
+- Indexer launch;
+- Retrieval index.
 
 ### `app/vloc/localizer.py`
 
-Ключевой модуль локализации. Содержит:
+Key localization module. Contains:
 
 - retrieval;
-- работу с локальными признаками;
-- геометрическую верификацию;
+- Local features;
+- Geometric verification;
 - temporal lock;
-- сглаживание координат.
+- smoothing the coordinates.
 
-## Web-интерфейс
+## Web interface
 
-Интерфейс содержит:
+The interface contains:
 
-- блок индексации эталона;
-- блок запуска runtime;
-- панель видеопотока;
-- карту;
-- телеметрию локализации;
-- статус обработки и количество обработанных кадров.
+- Standard indexing unit;
+- Runtime launch unit;
+- Video stream panel;
+- Map;
+- Telemetry of localization;
+- Status of processing and number of personnel processed.
 
-Frontend получает результаты через:
+Frontend obtains results through:
 
 - `GET /api/v1/localization/stream`
 - `GET /api/v1/runtime/preview`
 
-## Формат входных данных
+## Input format
 
-### Эталонное видео
+### Reference video
 
-По умолчанию:
+By default:
 
 - `inputs/videos/ref_01.mp4`
 
-### Runtime-видео
+### Runtime video
 
-По умолчанию:
+By default:
 
 - `inputs/videos/ref_02.mp4`
 
-### Файл координат
+### Coordinate File
 
-По умолчанию:
+By default:
 
 - `inputs/points/ref_01.txt`
 
-Формат строки:
+Line format:
 
 ```text
 MM:SS - LAT, LNG
 ```
 
-Пример:
+Example:
 
 ```text
 00:00 - 48.402872, 37.342720
@@ -219,129 +219,129 @@ MM:SS - LAT, LNG
 00:10 - 48.402950, 37.343180
 ```
 
-## Данные проекта
+## Project data
 
-В рабочем режиме проект использует внешние данные:
+In operating mode, the project uses external data:
 
-- `inputs/videos/` — видеофайлы для индексации и runtime
-- `inputs/points/` — файлы координат эталонных маршрутов
-- `data/` — база SQLite, retrieval-индекс и подготовленные keyframe-кадры
+- `inputs/videos/` is a video file for indexing and runtime.
+- `inputs/points/` - Reference route coordinates files
+- `Data/' is the base of SQLite, retrieval index and the production of keyframe frames
 
-При запуске через Docker эти каталоги не включаются в образ и подключаются
-снаружи как volume.
+When launched through Docker, these catalogs are not included in the image and are connected
+It's like a volume outside.
 
 ## API
 
-### Служебные endpoints
+### Service endpoints
 
-- `GET /api/v1/health` — состояние сервера и версия сборки
-- `GET /api/v1/version` — версия сборки
+- `GET /api/v1/health` is the server state and assembly version
+- `GET /api/v1/version` = assembly version
 
 ### Runtime
 
-- `GET /api/v1/runtime/status` — состояние runtime
-- `GET /api/v1/runtime/sources` — доступные runtime-источники
-- `POST /api/v1/runtime/start` — запуск runtime-локализации
-- `POST /api/v1/runtime/stop` — остановка runtime
+- `GET /api/v1/runtime/status` state
+- `GET /api/v1/runtime/sources' are accessible source
+- `POST /api/v1/runtime/start' is a run-off of Runtime-localization
+- `POST /api/v1/runtime/stop` — Stopping Runtime
 - `GET /api/v1/runtime/preview` — MJPEG preview
-- `GET /api/v1/runtime/frame.mjpg` — альтернативный preview endpoint
-- `GET /api/v1/runtime/preview.mjpg` — альтернативный preview endpoint
+- `GET /api/v1/runtime/frame.mjpg' is an alternative preview endpoint
+- `GET /api/v1/runtime/preview.mjpg' is an alternative preview endpoint
 - `WS /api/v1/runtime/ws/{token}` — WebSocket ingest
 
-### Локализация
+### Localization
 
-- `GET /api/v1/localization/stream` — поток координат по SSE
-- `POST /api/v1/localize/frame` — локализация одного кадра
+- `GET /api/v1/localization/stream' is a co-ordinate flow across SSE
+- `POST /api/v1/localize/frame` - One frame localization
 
-### Индексация
+### Indexation
 
-- `GET /api/v1/index/status` — состояние индексации
-- `GET /api/v1/index/sources` — источники эталонного видео
-- `GET /api/v1/index/routes` — список маршрутов и точек
-- `POST /api/v1/index/upload-and-build` — загрузка и запуск индексации из UI
+- `GET /api/v1/index/status` — State of Indexation
+- `GET /api/v1/index/sources` source of reference video
+- `GET /api/v1/index/routes` — List of Routes and Points
+- `POST /api/v1/index/upload-and-build' is the download and launch of UI indexation
 
 ## Docker
 
-### Что входит в Docker-образ
+### What's in the Docker view?
 
-В Docker-образ включаются:
+The Docker forms include:
 
-- исходный код backend;
-- frontend-статические файлы;
-- Python-зависимости;
-- FFmpeg и системные библиотеки, необходимые для запуска приложения.
+- Backend source code;
+- Frontend static files;
+- Python dependence;
+- FFmpeg and system libraries required to launch the application.
 
-### Что не входит в Docker-образ
+### What doesn't fit in the Docker view.
 
-В Docker-образ намеренно не включаются:
+The Docker species deliberately does not include:
 
 - `data/`
 - `inputs/`
 
-Это сделано, чтобы:
+This is done to:
 
-- не раздувать образ рабочими данными;
-- хранить индекс отдельно от кода;
-- позволить указывать свои файлы через frontend без пересборки образа.
+- Do not inflate the image with working data;
+- Keep the index separate from the code;
+- Allow your files to be displayed via frantend without re-assembly.
 
-### Файлы контейнеризации
+### Containerization files
 
-- `Dockerfile` — описание образа приложения
-- `.dockerignore` — исключения из контекста сборки
-- `docker-compose.yml` — локальный запуск контейнера
+- `Dockerfile` - Application image description
+- `.dockerignore` — Exemptions from Assembly Context
+- `docker-compose.yml` Local container launch
 
-### Сборка Docker-образа
+### Docker image collection
 
 ```powershell
 docker compose build
 ```
 
-### Запуск контейнера
+### Start container
 
 ```powershell
 docker compose up --build
 ```
 
-После запуска контейнер печатает в лог короткую пошаговую инструкцию по открытию интерфейса в браузере.
+Once launched, the container prints a short step instruction to open an interface in a browser.
 
-### Остановка контейнера
+### Stopping container
 
 ```powershell
 docker compose down
 ```
 
-### Внешние каталоги, подключаемые в контейнер
+### External catalogues connected to the container
 
-В `docker-compose.yml` подключаются:
+`docker-compose.yml` is connected to:
 
 - named volume `vloc-data -> /app/data`
 - `./inputs -> /app/inputs`
-- домашний каталог пользователя Windows `${USERPROFILE} -> /host-home` в режиме `read-only`
+- Windows user home directory `${USERPROFILE} -> /host-home` in `read-only mode`
 
-Таким образом:
+Thus:
 
-- код находится внутри образа;
-- индекс хранится в Docker volume;
-- стандартная логика проекта через папки `inputs/videos`, `inputs/points`, `inputs/live` сохраняется;
-- пользовательские видео и `points.txt` читаются прямо с хоста без ручного копирования в проект.
+- The code is inside the image;
+- The index is stored in the Docker volume;
+- standard project logic via `inputs/videos` folders, `inputs/points`, `inputs/live` retained;
+- user videos and `points.txt` read directly from host without manual copying to project.
 
-### Порядок запуска
+### Start order
 
-1. Выполнить `docker compose up --build`.
-2. Открыть ссылку на frontend из логов контейнера.
-3. В блоке индексации указать:
-4. либо путь из стандартных папок проекта, например `/app/inputs/videos/ref_01.mp4` и `/app/inputs/points/ref_01.txt`;
-5. либо произвольные пути, например `/host-home/Downloads/ref_01.mp4` и `/host-home/Downloads/ref_01.txt`.
-6. Запустить индексацию.
-7. В блоке runtime указать:
-8. либо путь к runtime-видео из `/app/inputs/videos`, `/app/inputs/live` или `/host-home/...`;
-9. либо `rtsp://...`;
-10. либо `ws://...` для WebSocket-источника.
-11. Нажать запуск и работать через frontend.
+1. Run `docker compose up --build`.
+2. Open a link to the frantend from the container's lair.
+3. In the indexing unit, state:
+4. Either the path from standard project folders e.g. `/app/inputs/videos/ref_01.mp4` and `/app/inputs/points/ref_01.txt`;
+5. or arbitrary routes, e.g. `/host-home/Downloads/ref_01.mp4` and `/host-home/Downloads/ref_01.txt`.
+6. Start indexing.
+7. In the runtime block, state:
+8. Or a runtime video from `/app/inputs/videos`, `/app/inputs/live` or `/host-home/...`;
+9. Either `rtsp://...`;
+10. or `ws://...` for WebSocket source.
+11. Press launch and run through Frontend.
 
-### Переменные окружения Docker
+### Docker's changed environment
 
-Основные параметры контейнера задаются через environment:
+Basic container parameters are set via environment:
 
 - `VLOC_DEVICE`
 - `VLOC_SHARED_HINT`
@@ -352,71 +352,71 @@ docker compose down
 - `VLOC_POINTS_DIR`
 - `VLOC_LIVE_DIR`
 
-По умолчанию контейнер настроен на:
+By default, the container is set to:
 
 - `VLOC_DEVICE=cuda`
 
-При необходимости значение можно переопределить перед запуском:
+If necessary, the value can be re-defined before starting:
 
 ```powershell
 $env:VLOC_DEVICE="cuda"
 docker compose up --build
 ```
 
-## Базовый сценарий использования
+## Baseline use scenario
 
-1. Выполнить `docker compose up --build`.
-2. Открыть web-интерфейс по ссылке из логов контейнера.
-3. Указать путь к эталонному видео и путь к `points.txt`.
-4. Выполнить индексацию.
-5. Указать runtime-источник.
-6. Запустить runtime-локализацию.
-7. Контролировать:
-   - видео;
-   - карту;
+1. Run `docker compose up --build`.
+2. Open the web interface by reference from the container's lair.
+3. Set the path to the reference video and the path to `points.txt`.
+4. Do indexation.
+5. Specify ringtime source.
+6. Run runtime-localization.
+7. Control:
+   - Video;
+   - Map;
    - confidence;
-   - статус runtime.
+   - Runtime status.
 
-## Диагностика
+## Diagnostics
 
-### Проверка сервера
+### server check
 
-Проверить локальный endpoint `GET /api/v1/health`.
+Check local endpoint `GET /api/v1/health`.
 
-### Проверка runtime
+### Runtime Check
 
-Проверить локальный endpoint `GET /api/v1/runtime/status`.
+Check Local Endpoint `GET /api/v1/runtime/status`.
 
-### Если локализация не появляется
+### If localization does not appear
 
-Проверить:
+Check:
 
-1. сервер запущен;
-2. индекс эталона собран;
-3. CUDA доступна;
-4. runtime-видео доступно;
-5. `runtime/status` не содержит `last_error`.
+1. The server is running;
+2. The reference index has been collected;
+3. CUDA is available;
+4. Runtime video is available;
+5. `runtime/status` does not contain `last_error`.
 
-## Состав поставки
+## Composition of delivery
 
-Для передачи рекомендуется передавать:
+It is recommended that:
 
-- исходный код проекта;
+- Project reference code;
 - `requirements.txt`;
 - `INSTALL_GPU_ONLY_WINDOWS.txt`;
 - `Dockerfile`;
 - `.dockerignore`;
 - `docker-compose.yml`;
-- актуальный `README.md`.
+- Current `README.md`.
 
-Каталоги `data/` и `inputs/` в состав Docker-образа не входят и передаются
-или подключаются отдельно, если требуется работа с уже подготовленным индексом
-и входными материалами.
+`data/` and `inputs/` catalogues are not included and transferred to the Docker configuration
+or are connected separately if work with an index already prepared is required
+and inputs.
 
-## Приватная конфигурация
+## Private configuration
 
-Ключи провайдеров, токены, пароли, прокси и персональные параметры задаются через переменные окружения. `.env.example` содержит имена без значений. Заполненный `.env` и локальные настройки исключены из Git. Не передавайте секреты аргументами команд и не публикуйте реальные журналы, выгрузки, сертификаты или пользовательские документы.
+Provider keys, tokens, passwords, proxy and personal parameters are set through variable environments. `.env.example` contains names without values. `.env` filled and local settings deleted from Git. Do not transmit secrets by command arguments and do not publish real magazines, downloads, certificates or user documents.
 
-Для офлайн-сценария данного проекта облачные ключи не требуются. Пути к данным, веса и сетевые настройки проверяйте по руководству запуска ниже.
+Cloud keys are not required for the offline scenario of the project. The data path, weights, and network settings are checked against the launch manual below.
 
-Проверка исходников и формата настроек не заменяет запуск инфраструктуры и оценку модели. Изменения приватности не подтверждают качество AI, работоспособность внешних API или готовность всей системы к эксплуатации.
+Checking the source and configuration formats does not replace the launch of the infrastructure and model evaluation. Privacy changes do not confirm the quality of AI, the performance of external APIs, or the willingness of the entire system to operate.

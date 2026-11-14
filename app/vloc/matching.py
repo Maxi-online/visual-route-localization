@@ -27,7 +27,7 @@ class LightGlueMatcher:
             from lightglue.utils import rbd  # type: ignore
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(
-                "Не найден LightGlue/SuperPoint. Установите:\n"
+                'No LightGlue/SuperPoint found. Set:\n'
                 "  pip install 'git+https://github.com/cvg/LightGlue.git'"
             ) from exc
         self._rbd = rbd

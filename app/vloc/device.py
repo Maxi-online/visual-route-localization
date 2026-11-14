@@ -7,14 +7,14 @@ def resolve_device(requested: str) -> str:
     req = str(requested).strip().lower()
     if req not in {"cuda", "gpu"}:
         raise RuntimeError(
-            "Этот проект собран в режиме GPU-only. "
-            "Допустимое устройство: cuda."
+            'This project is collected in GPU-only mode. '
+            'Allowable device: cuda.'
         )
 
     if not torch.cuda.is_available():
         raise RuntimeError(
-            "GPU-only режим: torch.cuda.is_available() == False.\n"
-            "Нужно установить CUDA-сборку PyTorch и убедиться, что драйвер NVIDIA активен."
+            'GPU-only mode: torch.cuda.is_available() ==False.\n'
+            'We need to install the PyTorch CUDA and make sure the NVIDIA driver is active.'
         )
 
     return "cuda"
