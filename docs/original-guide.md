@@ -34,7 +34,7 @@ transmits the result to the web interface where it is displayed simultaneously:
 - Service telemetry.
 
 The project consists of a backend part on Python/FastAPI and a Frontend part on
-TML/CSS/JavaScript with map interface on Leaflet.
+HTML/CSS/JavaScript with map interface on Leaflet.
 
 ## Technology
 
