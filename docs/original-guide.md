@@ -6,11 +6,11 @@ Computer vision for frame localization on a pre-indexed route. Indication of the
 
 ### Code navigation
 
-- [app/indexing_service.py](app/indexing_service.py)
-- [app/runtime.py](app/runtime.py)
-- [app/vloc/localizer.py](app/vloc/localizer.py)
-- [app/vloc/matching.py](app/vloc/matching.py)
-- [app/vloc/confidence.py](app/vloc/confidence.py)
+- [app/indexing_service.py](../app/indexing_service.py)
+- [app/runtime.py](../app/runtime.py)
+- [app/vloc/localizer.py](../app/vloc/localizer.py)
+- [app/vloc/matching.py](../app/vloc/matching.py)
+- [app/vloc/confidence.py](../app/vloc/confidence.py)
 
 ### Reproduction and evaluation
 
